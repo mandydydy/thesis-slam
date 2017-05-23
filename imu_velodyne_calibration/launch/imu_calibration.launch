@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- send table.xml to param server -->
+  <arg name="use_sim_time" default="true" />
+
+  <arg name="path" default="/home/mengdi/velodyne_data/imu_data/" />
+  <arg name="pitch1" default="imu_calibration_pitch1" />
+  <arg name="yaw1" default="imu_calibration_yaw1" />
+  <arg name="yaw2" default="imu_calibration_yaw2" />
+  <arg name="yaw_tilt" default="imu_calibration_yaw1_tilt" />
+  <arg name="offset" default="imu_offset" />
+  <arg name="yaw_fixed" default="pitch_fixed_tilt" />
+  
+
+  <!-- Nodelet manager -->
+  <node pkg="nodelet" type="nodelet" name="imu_manager" 
+    args="manager" output="screen" />
+
+  <!-- IMU Orientation Filter -->
+  <node pkg="nodelet" type="nodelet" name="ImuFilterNodelet" 
+    args="load imu_filter_madgwick/ImuFilterNodelet imu_manager" 
+    output="screen">
+    <param name="sleep" value = "false"/>
+    <param name="world_frame" value="ned"/>
+    <param name="use_magnetic_field_msg" value="false"/>
+    <param name="use_mag" value="false"/>
+    <param name="fixed_frame" value="odom" />
+    <param name="publish_tf" value="true" />
+  </node>
+
+  <node pkg="imu_velodyne_calibration" type="subtract_plane" name="imu_calibration" output="screen" >
+  	<param name= "Y_MIN" value = "-0.2"/>
+    <param name="Y_MAX" value = "0.5"/>
+    <param name="debug" value="true"/>
+  </node>
+
+<node pkg="rosbag" 
+		type="play" 
+		name="player" 
+		args="--clock --loop $(arg path)$(arg yaw_tilt).bag">
+    <remap from="/imu/data" to="/imu/data_raw" />
+</node>
+
+</launch>

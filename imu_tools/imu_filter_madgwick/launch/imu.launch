@@ -1,0 +1,32 @@
+
+<launch>
+
+  <arg name="path" default="/home/mengdi/velodyne_data/" />
+  <arg name="building" default="building_back_2" />
+  <arg name="grass" default="long_grass_3" />
+  <arg name="trash" default="trash_1" />
+
+ <arg name="use_sim_time" default="true" />
+  true
+  <!-- Nodelet manager -->
+  <node pkg="nodelet" type="nodelet" name="imu_manager" 
+    args="manager" output="screen" />
+
+  <!-- IMU Orientation Filter -->
+  <node pkg="nodelet" type="nodelet" name="ImuFilterNodelet" 
+    args="load imu_filter_madgwick/ImuFilterNodelet imu_manager" 
+    output="screen">
+
+    <param name="use_magnetic_field_msg" value="false"/>
+    <param name="use_mag" value="false"/>
+    <param name="fixed_frame" value="imu" />
+    <param name="publish_tf" value="true" />
+  </node>
+
+  <node pkg="rosbag" 
+    type="play" 
+    name="player" 
+    args="--clock $(arg path)$(arg trash).bag">
+    <remap from="/imu/data" to="/imu/data_raw" />
+      </node>
+</launch>

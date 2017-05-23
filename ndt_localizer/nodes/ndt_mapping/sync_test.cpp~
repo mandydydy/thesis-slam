@@ -1,0 +1,31 @@
+#include <message_filters/subscriber.h>
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
+#include <sensor_msgs/Imu.h>
+#include <nav_msgs/Odometry.h>
+
+using namespace message_filters;
+
+void callback(const sensor_msgs::Imu::ConstPtr &input_imu,
+             const nav_msgs::Odometry::ConstPtr &input_odom)
+{
+  // Solve all of perception here...
+}
+
+int main(int argc, char** argv)
+{
+  ros::init(argc, argv, "test_node");
+
+  ros::NodeHandle nh;
+  message_filters::Subscriber<Image> imu_sub(nh, "/imu/data/transform", 1);
+  message_filters::Subscriber<Image> odom_sub(nh, "/atrv/odom", 1);
+
+  typedef sync_policies::ApproximateTime<sensor_msgs::Imu, nav_msgs::Odometry> MySyncPolicy;
+  // ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(10)
+  Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), imu_sub, odom_sub);
+  sync.registerCallback(boost::bind(&callback, _1, _2));
+
+  ros::spin();
+
+  return 0;
+}
